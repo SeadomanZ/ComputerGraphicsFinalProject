@@ -63,3 +63,5 @@ pointLight.position.set(0,0.5,0)
 // pointLight.position.set(darkWarrior.position.x, 0.5, darkWarrior.position.z)
 
 scene.add(ambientLight, spotLight, directionalLight, pointLight)
+
+//test 
