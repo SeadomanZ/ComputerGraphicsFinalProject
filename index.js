@@ -1,5 +1,6 @@
 import * as THREE from './Three JS/build/three.module.js'
 import {OrbitControls} from './Three JS/examples/jsm/controls/OrbitControls.js'
+import {GLTFLoader} from './Three JS/examples/jsm/loaders/GLTFLoader.js'
 
 //2. Scene
 const scene = new THREE.Scene()
@@ -18,6 +19,7 @@ const FPcamera = new THREE.PerspectiveCamera(
     1000
 )
 const renderer = new THREE.WebGLRenderer({antialias: true})
+renderer.setClearColor('#87b6b6')
 
 const orbitControls = new OrbitControls(TPcamera, renderer.domElement)
 orbitControls.target.set(0,0,0)
@@ -34,6 +36,12 @@ FPcamera.lookAt(1,1.8,0)
 
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFShadowMap
+
+const textureLoader = new THREE.TextureLoader()
+const texture = textureLoader.load("./assets/textures/grass/rocky_terrain_02_diff_1k.jpg")
+
+// const normalLoader = new THREE.TextureLoader()
+// const normal = normalLoader.load("./assets/textures/grass/rocky_terrain_02_diff_1k.jpg")
 
 function animate(){
     orbitControls.update()
@@ -72,5 +80,43 @@ scene.add(ambientLight, spotLight, directionalLight, pointLight)
 //5. OBJECTS
 function createGround(w,h,d){
     const geo = new THREE.BoxGeometry(w,h,d)
-    const mat = new THREE.MeshStandardMaterial({color: '#ffffff'})
+    const mat = new THREE.MeshStandardMaterial({color: '#ffffff', map: texture})
+    const mesh = new THREE.Mesh(geo, mat)
+    return mesh
 }
+
+const ground = createGround(25,2,25)
+ground.receiveShadow=true
+ground.position.set(0,-1,0)
+scene.add(ground)
+
+let darkWarrior = null
+let spellGroup = null
+let spellActive = false
+
+const gltfLoader = new GLTFLoader()
+gltfLoader.load(
+    './assets/models/momonga_ains_ooal_gown/scene.gltf',
+    (gltf)=>{
+        darkWarrior = gltf.scene
+
+        darkWarrior.position.set(0,-0.01,3)
+        darkWarrior.scale.set(0.01,0.01,0.01)
+        darkWarrior.rotation.y=Math.PI/2
+
+        darkWarrior.traverse((child)=>{
+            if(child.isMesh{
+                child.castShadow=true
+                child.receiveShadow=true
+            }
+        })
+        scene.add(darkWarrior)
+        console.log("Dark Warrior loaded successfully");
+    },
+    (progress)=>{
+        console.log(`Loading: ${(progress.loaded/progress.total*100).toFixed(2)}%`);
+    },
+    (error)=>{
+        console.error('Error loading Dark Warrior model:', error)
+    }
+)
