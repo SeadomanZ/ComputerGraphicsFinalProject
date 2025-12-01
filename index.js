@@ -45,6 +45,7 @@ const texture = textureLoader.load("./assets/textures/grass/rocky_terrain_02_dif
 
 function animate(){
     orbitControls.update()
+    updateDarkWarrior()
     renderer.render(scene, TPcamera)
 }
 renderer.setAnimationLoop(animate)
@@ -105,7 +106,7 @@ gltfLoader.load(
         darkWarrior.rotation.y=Math.PI/2
 
         darkWarrior.traverse((child)=>{
-            if(child.isMesh{
+            if(child.isMesh){
                 child.castShadow=true
                 child.receiveShadow=true
             }
@@ -118,5 +119,169 @@ gltfLoader.load(
     },
     (error)=>{
         console.error('Error loading Dark Warrior model:', error)
-    }
+    }   
 )
+
+//SPELL CIRCLE
+function createSpellCircle(){
+    const spellCircle = new THREE.Group()
+    const spellMaterial= new THREE.MeshPhongMaterial({
+        color: '#DAA520',
+        emmisive: 0xFFCC00,
+        emmisiveIntensity: 2,
+        shininess: 100,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide
+    })
+
+    //INNER RING
+    const innerRingGeo = new THREE.RingGeometry(1,1.2,64)
+    const innerRing = new THREE.Mesh(innerRingGeo, spellMaterial)
+    innerRing.rotation.x = Math.PI/2
+    innerRing.position.y = 0.02
+    spellCircle.add(innerRing)
+
+    //OUTER RING
+    const outerRingGeo = new THREE.RingGeometry(1.8,2,64)
+    const outerRing = new THREE.Mesh(outerRingGeo, spellMaterial)
+    outerRing.rotation.x = Math.PI/2
+    outerRing.position.y = 0.02
+    spellCircle.add(outerRing)
+
+    //Pointer 1
+    const pointerGeo = new THREE.BoxGeometry(0.05,4,0.01)
+    const pointer1 = new THREE.Mesh(pointerGeo, spellMaterial)
+    pointer1.rotation.set(Math.PI/2,0,Math.PI/2)
+    pointer1.position.y = 0.01
+    spellCircle.add(pointer1)
+
+    //Pointer 2
+    const pointer2 = new THREE.Mesh(pointerGeo, spellMaterial)
+    pointer2.rotation.set(Math.PI/2,0,0)
+    pointer2.position.y = 0.01
+    spellCircle.add(pointer2)
+
+    return spellCircle
+}
+
+//KEYBOARD CONTROLS
+const keys= {
+    w:false,
+    a:false,
+    s:false,
+    d:false,
+    q:false,
+    e:false,
+    space:false
+}
+
+window.addEventListener('keydown',(e)=>{
+    const key = e.key.toLowerCase()
+
+    if(key==='w') keys.w=true
+    if(key==='a') keys.a=true
+    if(key==='s') keys.s=true
+    if(key==='d') keys.d=true
+    if(key==='q') keys.q=true
+    if(key==='e') keys.e=true
+    if(key===' ' && !keys.space){
+        keys.space=true
+        toggleSpell()
+    }
+})
+
+window.addEventListener('keyup', (e)=>{
+    const key = e.key.toLowerCase()
+
+    if(key==='w') keys.w=false
+    if(key==='a') keys.a=false
+    if(key==='s') keys.s=false
+    if(key==='d') keys.d=false
+    if(key==='q') keys.q=false
+    if(key==='e') keys.e=false
+    if(key===' ') keys.space=false
+})
+
+//TOGGLE SPACE FUNCTION
+function toggleSpell(){
+    if(!darkWarrior) return
+
+    if(spellActive){
+        //remove spell
+        if(spellGroup){
+            scene.remove(spellGroup)
+            spellGroup = null
+        }
+        spellActive = false
+        console.log('Spell deactivated');
+    }else{
+        //add spell
+        spellGroup = createSpellCircle()
+        spellGroup.position.set(darkWarrior.position.x, 0, darkWarrior.position.z)
+        scene.add(spellGroup)
+        spellActive =true
+        console.log('Spell activated');
+    }
+}
+
+//===================================================================
+// UPDATE DARK WARRIOR (called in animate loop)
+//===================================================================
+
+function updateDarkWarrior() {
+    if (!darkWarrior) return
+    
+    const movementSpeed = 0.1
+    const rotationSpeed = 0.05
+    
+    // Movement W/A/S/D (relative to model's rotation)
+    if (keys.w) {
+        darkWarrior.position.x += Math.sin(darkWarrior.rotation.y) * movementSpeed
+        darkWarrior.position.z += Math.cos(darkWarrior.rotation.y) * movementSpeed
+    }
+    if (keys.s) {
+        darkWarrior.position.x -= Math.sin(darkWarrior.rotation.y) * movementSpeed
+        darkWarrior.position.z -= Math.cos(darkWarrior.rotation.y) * movementSpeed
+    }
+    if (keys.a) {
+        darkWarrior.position.x -= Math.cos(darkWarrior.rotation.y) * movementSpeed
+        darkWarrior.position.z += Math.sin(darkWarrior.rotation.y) * movementSpeed
+    }
+    if (keys.d) {
+        darkWarrior.position.x += Math.cos(darkWarrior.rotation.y) * movementSpeed
+        darkWarrior.position.z -= Math.sin(darkWarrior.rotation.y) * movementSpeed
+    }
+    
+    // Rotation Q/E
+    if (keys.q) {
+        darkWarrior.rotation.y += rotationSpeed
+    }
+    if (keys.e) {
+        darkWarrior.rotation.y -= rotationSpeed
+    }
+    
+    // Update spell position to follow Dark Warrior
+    if (spellActive && spellGroup) {
+        spellGroup.position.set(darkWarrior.position.x, 0, darkWarrior.position.z)
+        
+        // Optional: Rotate spell circle for cool effect
+        spellGroup.rotation.y += 0.01
+    }
+    
+    // Update point light position (spell effect)
+    pointLight.position.set(darkWarrior.position.x, 0.5, darkWarrior.position.z)
+    
+    // Update First Person Camera (mengikuti Dark Warrior)
+    const offset = new THREE.Vector3(0, 1.8, 0)
+    FPcamera.position.copy(darkWarrior.position).add(offset)
+    
+    // FP Camera looks forward relative to model rotation
+    const lookAtDistance = 1
+    const lookAtPoint = new THREE.Vector3(
+        darkWarrior.position.x + Math.sin(darkWarrior.rotation.y) * lookAtDistance,
+        1.8,
+        darkWarrior.position.z + Math.cos(darkWarrior.rotation.y) * lookAtDistance
+    )
+    FPcamera.lookAt(lookAtPoint)
+}
