@@ -122,6 +122,109 @@ gltfLoader.load(
     }   
 )
 
+//HamsukeTextures
+const texLoader = new THREE.TextureLoader()
+
+const texFrontHappy = texLoader.load("./assets/textures/hamsuke/front_happy.png")
+const texFrontSad = texLoader.load("./assets/textures/hamsuke/front_sad.png")
+const texSide = texLoader.load("./assets/textures/hamsuke/side.png")
+const texTopBack = texLoader.load("./assets/textures/hamsuke/top&back.png")
+
+let isHappy = true;
+
+const hamsterMaterials = [
+    new THREE.MeshPhongMaterial({ map: texSide }),//Right
+    new THREE.MeshPhongMaterial({ map: texSide }),//Left
+    new THREE.MeshPhongMaterial({ map: texTopBack }),//Top
+    new THREE.MeshPhongMaterial({ map: texTopBack }),//Bottom
+    new THREE.MeshPhongMaterial({ map: texFrontHappy }),//Front(toggle)
+    new THREE.MeshPhongMaterial({ map: texTopBack })//Back
+]
+
+//Hamsuke
+function createHamster() {
+    const hamsterGroup = new THREE.Group()
+    //Body
+    const bodyGeo = new THREE.BoxGeometry(2, 2, 2)
+    const body = new THREE.Mesh(bodyGeo, hamsterMaterials)
+    body.position.set(3, 1, -1)
+    body.rotation.y = Math.PI / 8
+    body.castShadow = true
+    body.receiveShadow = true
+    hamsterGroup.add(body)
+    hamsterGroup.body = body
+
+    //TailMain
+    const tailMainGeo = new THREE.BoxGeometry(0.6, 2.8, 0.6)
+    const tailMainMat = new THREE.MeshPhongMaterial({ color: "#023020" })
+    const tailMain = new THREE.Mesh(tailMainGeo, tailMainMat)
+    tailMain.position.set(2.6, 1.4, -2.25)
+    tailMain.rotation.set(0, Math.PI / 8, 0)
+    tailMain.castShadow = true
+    tailMain.receiveShadow = true
+    hamsterGroup.add(tailMain)
+
+    //tail
+    const tailExtGeo = new THREE.BoxGeometry(0.6, 0.6, 1.4)
+    const tailExtMat = new THREE.MeshPhongMaterial({ color: "#023020" })
+    const tailExt = new THREE.Mesh(tailExtGeo, tailExtMat)
+    tailExt.position.set(2.44, 2.8, -2.62)
+    tailExt.rotation.set(0, Math.PI / 8, Math.PI / 2)
+    tailExt.castShadow = true
+    tailExt.receiveShadow = true
+    hamsterGroup.add(tailExt)
+
+    //L-Ear
+    const leftEarGeo = new THREE.ConeGeometry(0.2, 0.7, 128)
+    const leftEarMat = new THREE.MeshPhongMaterial({ color: "#023020" })
+    const leftEar = new THREE.Mesh(leftEarGeo, leftEarMat)
+    leftEar.position.set(4.05, 2.2, -0.6)
+    leftEar.rotation.z = -Math.PI / 8
+    leftEar.castShadow = true
+    leftEar.receiveShadow = true
+    hamsterGroup.add(leftEar)
+
+    //R-Ear
+    const rightEarGeo = new THREE.ConeGeometry(0.2, 0.7, 128)
+    const rightEarMat = new THREE.MeshPhongMaterial({ color: "#6B6860" })
+    const rightEar = new THREE.Mesh(rightEarGeo, rightEarMat)
+    rightEar.position.set(2.5, 2.2, 0)
+    rightEar.rotation.z = -Math.PI / 8
+    rightEar.castShadow = true
+    rightEar.receiveShadow = true
+    hamsterGroup.add(rightEar)
+
+    scene.add(hamsterGroup)
+    return hamsterGroup
+}
+
+const hamsterGroup = createHamster()
+const raycaster = new THREE.Raycaster()
+const mouse = new THREE.Vector2()
+
+window.addEventListener("click", (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+    raycaster.setFromCamera(mouse, TPcamera)
+
+    const intersects = raycaster.intersectObject(hamsterGroup.body)
+
+    if (intersects.length > 0) {
+        toggleHamsukeFace()
+    }
+})
+
+//toggleFace
+function toggleHamsukeFace() {
+    isHappy = !isHappy
+
+    hamsterGroup.body.material[4].map = isHappy ? texFrontHappy : texFrontSad
+    hamsterGroup.body.material[4].needsUpdate = true
+}
+
+
+
 //SPELL CIRCLE
 function createSpellCircle(){
     const spellCircle = new THREE.Group()
