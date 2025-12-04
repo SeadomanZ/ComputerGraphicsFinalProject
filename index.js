@@ -39,6 +39,7 @@ renderer.shadowMap.type = THREE.PCFShadowMap
 
 const textureLoader = new THREE.TextureLoader()
 const texture = textureLoader.load("./assets/textures/grass/rocky_terrain_02_diff_1k.jpg")
+const trunkTexture = textureLoader.load("./assets/textures/tree/chinese_cedar_bark_diff_1k.jpg")
 
 // const normalLoader = new THREE.TextureLoader()
 // const normal = normalLoader.load("./assets/textures/grass/rocky_terrain_02_diff_1k.jpg")
@@ -388,3 +389,66 @@ function updateDarkWarrior() {
     )
     FPcamera.lookAt(lookAtPoint)
 }
+
+function createTree(x,z){
+    const tree = new THREE.Group()
+
+    //TRUNK
+    const trunkGeo = new THREE.CylinderGeometry(0.6, 0.6, 3)
+    const trunkMat = new THREE.MeshStandardMaterial({color: '#ffffff', map: trunkTexture})
+    const trunk = new THREE.Mesh(trunkGeo, trunkMat)
+
+    trunk.position.y = 1.5
+
+    trunk.castShadow = true
+    trunk.receiveShadow = true
+
+    tree.add(trunk)
+
+    const BleavesGeo = new THREE.ConeGeometry(3, 4)
+    const BleavesMat = new THREE.MeshStandardMaterial({color: '#374F2F'})
+    const Bleaves = new THREE.Mesh(BleavesGeo, BleavesMat)
+
+    Bleaves.position.y = 4
+
+    Bleaves.castShadow = true
+    Bleaves.receiveShadow = true
+
+    tree.add(Bleaves)
+
+    const TleavesGeo = new THREE.ConeGeometry(2.1, 2.8)
+    const TleavesMat = new THREE.MeshStandardMaterial({color: '#374F2F'})
+    const Tleaves = new THREE.Mesh(TleavesGeo, TleavesMat)
+
+    Tleaves.position.y = 6
+
+    Tleaves.castShadow = true
+    Tleaves.receiveShadow = true
+
+    tree.add(Tleaves)
+
+    tree.position.set(x,0,z)
+
+    return tree
+}
+
+const tree1 = createTree(-5,-5)
+const tree2 = createTree(7, -6)
+const tree3 = createTree(-8, 8)
+
+scene.add(tree1, tree2, tree3)
+
+//SKYBOX
+function loadSkybox(){
+    const loader = new THREE.CubeTextureLoader()
+    const skyboxTexture = loader.load([
+        './assets/skybox/bottom.png',
+        './assets/skybox/side-1.png',
+        './assets/skybox/side-2.png',
+        './assets/skybox/side-3.png',
+        './assets/skybox/side-4.png',
+        './assets/skybox/top.png',
+    ])
+    scene.background = skyboxTexture
+}
+loadSkybox()
