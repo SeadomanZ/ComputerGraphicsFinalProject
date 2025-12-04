@@ -334,3 +334,18 @@ const tree2 = createTree(7, -6)
 const tree3 = createTree(-8, 8)
 
 scene.add(tree1, tree2, tree3)
+
+//SKYBOX
+function loadSkybox(){
+    const loader = new THREE.CubeTextureLoader()
+    const skyboxTexture = loader.load([
+        './assets/skybox/bottom.png',
+        './assets/skybox/side-1.png',
+        './assets/skybox/side-2.png',
+        './assets/skybox/side-3.png',
+        './assets/skybox/side-4.png',
+        './assets/skybox/top.png',
+    ])
+    scene.background = skyboxTexture
+}
+loadSkybox()
